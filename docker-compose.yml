@@ -1,0 +1,13 @@
+services:
+  yt2mp3:
+    build: .
+    container_name: yt2mp3-downloader
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./output:/output
+     # - ./temp:/temp
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+
