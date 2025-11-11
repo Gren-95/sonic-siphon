@@ -1,13 +1,11 @@
 services:
-  yt2mp3:
+  sonic-siphon:
     build: .
-    container_name: yt2mp3-downloader
+    container_name: sonic-siphon
     ports:
       - "5000:5000"
     volumes:
       - ./output:/output
      # - ./temp:/temp
     restart: unless-stopped
-    environment:
-      - PYTHONUNBUFFERED=1
 

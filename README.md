@@ -1,14 +1,17 @@
-# YouTube to MP3 Downloader (Docker)
+# Sonic Siphon
 
-A Docker-based web application for downloading YouTube videos and playlists as MP3 files with adjustable playback speed.
+A modern, Docker-based web application for downloading YouTube videos and playlists as MP3 files with adjustable playback speed and an intuitive file management interface.
 
 ## Features
 
-- 🎵 Download single YouTube videos or entire playlists
-- ⚡ Adjustable playback speed (0.5x, 1x, 1.5x, 1.75x, 2x)
-- 🌐 Clean and modern web interface
-- 🐳 Easy Docker deployment with volume mounting
-- 📁 Files automatically saved to mounted `/output` directory
+- 🎵 **Download YouTube Content**: Single videos or entire playlists
+- ⚡ **Speed Adjustment**: Adjust playback speed (0.5x, 1x, 1.5x, 1.75x, 2x) while preserving pitch
+- 🖼️ **Thumbnail Embedding**: Automatically embeds video thumbnails as album art
+- 🎨 **Modern UI**: Clean, responsive interface built with Tailwind CSS
+- 📁 **File Management**: Organize downloads with temp and output directories
+- 🔊 **Audio Streaming**: Preview and stream downloaded MP3s directly in the browser
+- 🐳 **Docker Ready**: One-command deployment with Docker Compose
+- 📊 **Real-time Progress**: Track download progress with live updates
 
 ## Prerequisites
 
@@ -17,21 +20,40 @@ A Docker-based web application for downloading YouTube videos and playlists as M
 
 ## Quick Start
 
-1. **Build and run the container:**
+1. **Start the application**:
+   ```bash
+   docker-compose up -d
+   ```
 
-```bash
-docker-compose up -d
-```
+2. **Access the web interface**:
+   Open your browser and navigate to `http://localhost:5000`
 
-2. **Access the web interface:**
-
-Open your browser and navigate to: `http://localhost:5000`
-
-3. **Download MP3s:**
+3. **Download MP3s**:
    - Paste a YouTube video or playlist URL
-   - Select your desired playback speed
+   - Optionally select a playback speed
    - Click "Download"
-   - Files will be saved to `./output` directory
+   - Files are saved to `./output` directory
+
+## Project Structure
+
+```
+sonic-siphon/
+├── app.py                 # Flask backend application
+├── templates/
+│   └── index.html        # Web interface
+├── static/
+│   ├── src/
+│   │   └── input.css     # Tailwind CSS source
+│   └── css/
+│       └── main.css      # Compiled CSS (generated)
+├── output/               # Downloaded MP3 files (mounted volume)
+├── requirements.txt      # Python dependencies
+├── package.json          # Node.js dependencies (Tailwind CSS)
+├── tailwind.config.js    # Tailwind configuration
+├── Dockerfile           # Docker image configuration
+├── docker-compose.yml   # Docker Compose configuration
+└── README.md           # This file
+```
 
 ## Configuration
 
@@ -53,37 +75,46 @@ volumes:
   - /your/custom/path:/output  # Change to your desired path
 ```
 
-## Project Structure
+### Enable Temp Directory Mounting
 
-```
-yt2mp3docker/
-├── app.py                 # Flask backend application
-├── templates/
-│   └── index.html        # Web interface
-├── requirements.txt      # Python dependencies
-├── Dockerfile           # Docker image configuration
-├── docker-compose.yml   # Docker Compose configuration
-├── output/              # Downloaded MP3 files (created on first run)
-└── README.md           # This file
+To persist temporary files, uncomment the temp volume in `docker-compose.yml`:
+
+```yaml
+volumes:
+  - ./output:/output
+  - ./temp:/temp  # Uncomment this line
 ```
 
 ## How It Works
 
-1. **Backend**: Python Flask server with yt-dlp for downloading and ffmpeg for audio processing
-2. **Frontend**: Clean HTML/CSS/JavaScript interface for easy interaction
-3. **Processing**: 
-   - Downloads video/playlist using yt-dlp
-   - Converts to MP3 format
-   - Applies speed adjustment if selected (using ffmpeg's atempo filter)
-   - Saves to `/output` directory (mounted to `./output` on host)
+### Backend
+- **Flask**: Web server handling API requests
+- **yt-dlp**: Downloads YouTube videos and playlists
+- **ffmpeg**: Converts audio and applies speed adjustments using the `atempo` filter
+
+### Frontend
+- **Tailwind CSS**: Modern, utility-first CSS framework
+- **JavaScript**: Handles UI interactions, real-time updates, and file management
+
+### Processing Pipeline
+1. User submits YouTube URL and optional speed setting
+2. Backend extracts video/playlist metadata for preview
+3. Downloads audio using yt-dlp with embedded thumbnail
+4. Converts to MP3 format (192kbps)
+5. Applies speed adjustment if specified (preserves pitch)
+6. Saves to `/temp` directory initially
+7. User can move files to `/output` directory via the UI
 
 ## Supported URLs
 
 - Single videos: `https://www.youtube.com/watch?v=VIDEO_ID`
 - Playlists: `https://www.youtube.com/playlist?list=PLAYLIST_ID`
 - Short URLs: `https://youtu.be/VIDEO_ID`
+- Mobile URLs: `https://m.youtube.com/watch?v=VIDEO_ID`
 
-## Speed Adjustment Notes
+## Speed Adjustment
+
+Speed adjustments use ffmpeg's `atempo` filter, which preserves pitch while changing tempo:
 
 - **0.5x**: Half speed (slower)
 - **1x**: Normal speed (no modification)
@@ -91,44 +122,74 @@ yt2mp3docker/
 - **1.75x**: 75% faster
 - **2x**: Double speed (twice as fast)
 
-Speed adjustments use ffmpeg's `atempo` filter which preserves pitch while changing tempo.
+For speeds outside the 0.5-2.0 range, multiple `atempo` filters are chained automatically.
 
-## Stopping the Container
+## API Endpoints
+
+- `GET /` - Main web interface
+- `POST /preview` - Get video/playlist metadata without downloading
+- `POST /download` - Start download process
+- `GET /status/<download_id>` - Get download status and progress
+- `GET /files` - List all MP3 files in temp and output directories
+- `GET /stream/<location>/<filename>` - Stream MP3 file for playback
+- `GET /thumbnail/<location>/<filename>` - Extract and serve embedded thumbnail
+- `POST /move` - Move files from temp to output directory
+- `DELETE /delete/<location>/<filename>` - Delete a file
+
+## Development
+
+### Building CSS
+
+If you modify Tailwind CSS source files, rebuild the CSS:
 
 ```bash
-docker-compose down
+npm run build:css
 ```
 
-## Rebuilding After Changes
+### Rebuilding the Container
+
+After making changes to the code:
 
 ```bash
 docker-compose up -d --build
 ```
 
-## Logs
-
-View container logs:
+### Viewing Logs
 
 ```bash
 docker-compose logs -f
 ```
 
+### Stopping the Container
+
+```bash
+docker-compose down
+```
+
 ## Troubleshooting
 
-**Issue**: Downloads fail
-- Check if the YouTube URL is valid
-- Ensure you have internet connectivity
-- Check container logs: `docker-compose logs`
+### Downloads Fail
+- Verify the YouTube URL is valid and accessible
+- Check internet connectivity
+- Review container logs: `docker-compose logs`
+- Ensure yt-dlp is up to date (rebuild the container)
 
-**Issue**: Speed adjustment not working
-- Verify ffmpeg is installed in the container (it should be by default)
-- Check logs for any ffmpeg errors
+### Speed Adjustment Not Working
+- Verify ffmpeg is installed (included in Docker image)
+- Check logs for ffmpeg errors: `docker-compose logs`
+- Ensure speed value is between 0.5 and 2.0 (or multiples)
 
-**Issue**: Can't access web interface
-- Ensure port 5000 is not being used by another application
-- Check if the container is running: `docker-compose ps`
+### Can't Access Web Interface
+- Ensure port 5000 is not in use by another application
+- Check if container is running: `docker-compose ps`
+- Verify port mapping in `docker-compose.yml`
 
-## License
+### Files Not Appearing
+- Check volume mounts in `docker-compose.yml`
+- Verify directory permissions on host system
+- Review container logs for file system errors
 
-This project is for educational purposes. Please respect YouTube's Terms of Service and content creators' rights.
-
+### Thumbnails Not Showing
+- Thumbnails are embedded during download
+- Some videos may not have thumbnails available
+- Check logs for thumbnail extraction errors

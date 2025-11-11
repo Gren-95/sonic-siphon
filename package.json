@@ -1,7 +1,7 @@
 {
-  "name": "yt2mp3docker",
+  "name": "sonic-siphon",
   "version": "1.0.0",
-  "description": "YouTube to MP3 downloader with Tailwind CSS",
+  "description": "Sonic Siphon a youtube to mp3 downloader with Tailwind CSS",
   "scripts": {
     "build:css": "tailwindcss -i ./static/src/input.css -o ./static/css/main.css --minify"
   },
