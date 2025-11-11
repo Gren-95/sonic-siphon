@@ -21,6 +21,7 @@ A modern, Docker-based web application for downloading YouTube videos and playli
 ## Quick Start
 
 1. **Start the application**:
+
    ```bash
    docker-compose up -d
    ```
@@ -33,27 +34,6 @@ A modern, Docker-based web application for downloading YouTube videos and playli
    - Optionally select a playback speed
    - Click "Download"
    - Files are saved to `./output` directory
-
-## Project Structure
-
-```
-sonic-siphon/
-├── app.py                 # Flask backend application
-├── templates/
-│   └── index.html        # Web interface
-├── static/
-│   ├── src/
-│   │   └── input.css     # Tailwind CSS source
-│   └── css/
-│       └── main.css      # Compiled CSS (generated)
-├── output/               # Downloaded MP3 files (mounted volume)
-├── requirements.txt      # Python dependencies
-├── package.json          # Node.js dependencies (Tailwind CSS)
-├── tailwind.config.js    # Tailwind configuration
-├── Dockerfile           # Docker image configuration
-├── docker-compose.yml   # Docker Compose configuration
-└── README.md           # This file
-```
 
 ## Configuration
 
@@ -88,15 +68,18 @@ volumes:
 ## How It Works
 
 ### Backend
+
 - **Flask**: Web server handling API requests
 - **yt-dlp**: Downloads YouTube videos and playlists
 - **ffmpeg**: Converts audio and applies speed adjustments using the `atempo` filter
 
 ### Frontend
+
 - **Tailwind CSS**: Modern, utility-first CSS framework
 - **JavaScript**: Handles UI interactions, real-time updates, and file management
 
 ### Processing Pipeline
+
 1. User submits YouTube URL and optional speed setting
 2. Backend extracts video/playlist metadata for preview
 3. Downloads audio using yt-dlp with embedded thumbnail
@@ -166,30 +149,86 @@ docker-compose logs -f
 docker-compose down
 ```
 
+## CI/CD with GitHub Actions
+
+This repository includes a GitHub Actions workflow that automatically builds and pushes Docker images to Docker Hub on every push to the main/master branch.
+
+### Setup
+
+1. **Create Docker Hub Access Token**:
+   - Go to Docker Hub → Account Settings → Security → New Access Token
+   - Create a token with read/write permissions
+   - Copy the token
+
+2. **Add GitHub Secrets**:
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Add the following secrets:
+     - `DOCKERHUB_USERNAME`: Your Docker Hub username (e.g., `fossfrog`)
+     - `DOCKERHUB_TOKEN`: Your Docker Hub access token
+
+3. **Push to trigger workflow**:
+   - The workflow automatically runs on pushes to `main` or `master` branches
+   - You can also manually trigger it from the Actions tab
+
+### Workflow Features
+
+- ✅ Automatic builds on push to main/master
+- ✅ Tag support for semantic versioning (e.g., `v1.0.0`)
+- ✅ Multi-platform support (via Docker Buildx)
+- ✅ Layer caching for faster builds
+- ✅ Automatic tagging with branch names, SHA, and semantic versions
+
+### Using the Published Image
+
+Once pushed, you can use the image directly:
+
+```bash
+docker pull fossfrog/sonic-siphon:latest
+```
+
+Or update `docker-compose.yml`:
+
+```yaml
+services:
+  sonic-siphon:
+    image: fossfrog/sonic-siphon:latest
+    container_name: sonic-siphon
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./output:/output
+    restart: unless-stopped
+```
+
 ## Troubleshooting
 
 ### Downloads Fail
+
 - Verify the YouTube URL is valid and accessible
 - Check internet connectivity
 - Review container logs: `docker-compose logs`
 - Ensure yt-dlp is up to date (rebuild the container)
 
 ### Speed Adjustment Not Working
+
 - Verify ffmpeg is installed (included in Docker image)
 - Check logs for ffmpeg errors: `docker-compose logs`
 - Ensure speed value is between 0.5 and 2.0 (or multiples)
 
 ### Can't Access Web Interface
+
 - Ensure port 5000 is not in use by another application
 - Check if container is running: `docker-compose ps`
 - Verify port mapping in `docker-compose.yml`
 
 ### Files Not Appearing
+
 - Check volume mounts in `docker-compose.yml`
 - Verify directory permissions on host system
 - Review container logs for file system errors
 
 ### Thumbnails Not Showing
+
 - Thumbnails are embedded during download
 - Some videos may not have thumbnails available
 - Check logs for thumbnail extraction errors
