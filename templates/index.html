@@ -510,7 +510,7 @@
                     </div>
                     <div class="flex gap-1">
                         <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600 play-btn" id="play-${file.location}-${escapedName}" onclick="togglePlay('${file.location}', '${escapedNameForJs}')">${getPlayIcon()}</button>
-                        <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600" onclick="deleteFile('${file.location}', '${escapedNameForJs}')">${getTrashIcon()}</button>
+                        ${file.location === 'temp' ? `<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600" onclick="deleteFile('${file.location}', '${escapedNameForJs}')">${getTrashIcon()}</button>` : ''}
                     </div>
                 </div>
             `;
