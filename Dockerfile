@@ -1,5 +1,5 @@
 # Use Python 3.11 slim image
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Install ffmpeg, Node.js and npm
 RUN apt-get update && \
