@@ -27,6 +27,7 @@ docker-compose up -d
 Go to [http://localhost:5000](http://localhost:5000)
 
 **3. Download MP3s from YouTube:**
+
 - 📝 Paste a YouTube video or playlist URL in the provided field (supports `youtube.com` and `youtu.be` links)
 - 🎚️ Choose an optional playback speed—your MP3 will be encoded at this speed, with pitch preserved
 - ⬇️ Click **Download** and watch the progress
