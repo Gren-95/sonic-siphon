@@ -186,6 +186,31 @@
                             <div class="text-sm">Empty</div>
                         </div>
                     </div>
+                    <!-- Pagination Controls -->
+                    <div id="outputPagination" class="hidden p-3 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-stone-600 dark:text-stone-400">Show:</span>
+                            <select id="outputItemsPerPage" class="text-xs border border-stone-300 dark:border-stone-600 rounded px-2 py-1 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-50">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="outputPrevPage" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span class="text-xs text-stone-600 dark:text-stone-400" id="outputPageInfo">Page 1 of 1</span>
+                            <button id="outputNextPage" class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
     </div>
@@ -216,6 +241,18 @@
         let selectedFiles = new Set();
         let outputFilesVisible = false;
         let previewTimeout = null;
+        
+        // Pagination state for output files
+        let allOutputFiles = [];
+        let outputCurrentPage = 1;
+        // Default to 5 on mobile, 10 on desktop
+        let outputItemsPerPage = window.innerWidth < 1024 ? 5 : 10;
+        
+        // Set initial dropdown value
+        const itemsPerPageSelect = document.getElementById('outputItemsPerPage');
+        if (itemsPerPageSelect) {
+            itemsPerPageSelect.value = outputItemsPerPage.toString();
+        }
 
         // Cookie functions
         function setCookie(name, value, days) {
@@ -336,8 +373,22 @@
             if (window.innerWidth < 1024) {
                 const outputFileList = document.getElementById('outputFileList');
                 const outputChevron = document.getElementById('outputChevron');
+                const outputPagination = document.getElementById('outputPagination');
+                const isHidden = outputFileList.classList.contains('hidden');
+                
                 outputFileList.classList.toggle('hidden');
                 outputChevron.classList.toggle('rotate-180');
+                
+                // Hide/show pagination based on section visibility
+                if (isHidden) {
+                    // Section is being shown, show pagination if there are files
+                    if (allOutputFiles.length > 0) {
+                        outputPagination.classList.remove('hidden');
+                    }
+                } else {
+                    // Section is being hidden, hide pagination
+                    outputPagination.classList.add('hidden');
+                }
             }
         }
 
@@ -345,11 +396,13 @@
         function setOutputInitialState() {
             const outputFileList = document.getElementById('outputFileList');
             const outputChevron = document.getElementById('outputChevron');
+            const outputPagination = document.getElementById('outputPagination');
             const isMobile = window.innerWidth < 1024; // lg breakpoint
             
             if (isMobile) {
                 outputFileList.classList.add('hidden');
                 outputChevron.classList.remove('rotate-180');
+                outputPagination.classList.add('hidden');
             } else {
                 outputFileList.classList.remove('hidden');
                 outputChevron.classList.add('rotate-180');
@@ -564,16 +617,18 @@
                 // Load output files
                 if (data.output_files && data.output_files.length > 0) {
                     outputFileCount.textContent = data.output_files.length;
-                    outputFileList.innerHTML = data.output_files.map(file => renderFileItem(file, false)).join('');
-                    updatePlayButtons();
+                    allOutputFiles = data.output_files;
+                    renderOutputFiles();
                 } else {
                     outputFileCount.textContent = '0';
+                    allOutputFiles = [];
                     outputFileList.innerHTML = `
                         <div class="text-center py-12 text-stone-500 dark:text-stone-400">
                             <div class="text-4xl mb-2">📁</div>
                             <div class="text-sm">Empty</div>
                         </div>
                     `;
+                    document.getElementById('outputPagination').classList.add('hidden');
                 }
             } catch (error) {
                 console.error('Error loading files:', error);
@@ -671,6 +726,66 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // Output pagination functions
+        function renderOutputFiles() {
+            const totalFiles = allOutputFiles.length;
+            const totalPages = outputItemsPerPage === 'all' ? 1 : Math.ceil(totalFiles / outputItemsPerPage);
+            
+            // Ensure current page is valid
+            if (outputCurrentPage > totalPages && totalPages > 0) {
+                outputCurrentPage = totalPages;
+            }
+            
+            let filesToShow;
+            if (outputItemsPerPage === 'all') {
+                filesToShow = allOutputFiles;
+            } else {
+                const startIndex = (outputCurrentPage - 1) * outputItemsPerPage;
+                const endIndex = startIndex + outputItemsPerPage;
+                filesToShow = allOutputFiles.slice(startIndex, endIndex);
+            }
+            
+            outputFileList.innerHTML = filesToShow.map(file => renderFileItem(file, false)).join('');
+            updatePlayButtons();
+            
+            // Update pagination controls
+            const pagination = document.getElementById('outputPagination');
+            const fileListElement = document.getElementById('outputFileList');
+            const isMobile = window.innerWidth < 1024;
+            const isSectionHidden = fileListElement.classList.contains('hidden');
+            
+            if (totalFiles > 0 && !(isMobile && isSectionHidden)) {
+                pagination.classList.remove('hidden');
+                document.getElementById('outputPageInfo').textContent = `Page ${outputCurrentPage} of ${totalPages}`;
+                document.getElementById('outputPrevPage').disabled = outputCurrentPage === 1;
+                document.getElementById('outputNextPage').disabled = outputCurrentPage === totalPages || totalPages === 0;
+            } else {
+                pagination.classList.add('hidden');
+            }
+        }
+
+        // Pagination event listeners
+        document.getElementById('outputItemsPerPage').addEventListener('change', function() {
+            outputItemsPerPage = this.value === 'all' ? 'all' : parseInt(this.value);
+            outputCurrentPage = 1;
+            renderOutputFiles();
+        });
+
+        document.getElementById('outputPrevPage').addEventListener('click', function() {
+            if (outputCurrentPage > 1) {
+                outputCurrentPage--;
+                renderOutputFiles();
+            }
+        });
+
+        document.getElementById('outputNextPage').addEventListener('click', function() {
+            const totalPages = outputItemsPerPage === 'all' ? 1 : Math.ceil(allOutputFiles.length / outputItemsPerPage);
+            if (outputCurrentPage < totalPages) {
+                outputCurrentPage++;
+                renderOutputFiles();
+            }
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
