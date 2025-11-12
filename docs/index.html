@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonic Siphon - Mock Demo</title>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Download YouTube videos and playlists as MP3 files with adjustable playback speed - Demo">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        .brand-icon-shadow {
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+        }
+        .dark .brand-icon-shadow {
+            filter: drop-shadow(0 3px 6px rgba(255, 255, 255, 0.5));
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 1000;
+            background-color: #1c1917;
+            color: #fafaf9;
+            text-align: left;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: normal;
+            width: 200px;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .dark .tooltip-content {
+            background-color: #fafaf9;
+            color: #1c1917;
+        }
+        .tooltip-content::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1c1917 transparent transparent transparent;
+        }
+        .dark .tooltip-content::after {
+            border-color: #fafaf9 transparent transparent transparent;
+        }
+        .tooltip:hover .tooltip-content,
+        .tooltip.active .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+        @media (max-width: 1023px) {
+            .tooltip-content {
+                width: 250px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen transition-colors duration-300 bg-stone-50 dark:bg-gradient-to-br dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 text-stone-900 dark:text-stone-50">
+    <div class="h-screen flex flex-col p-4 gap-4 max-w-[1800px] mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 brand-icon-shadow">
+                    <rect width="48" height="48" rx="12" fill="url(#gradient1)"/>
+                    <path d="M24 8L34 14V20L24 26L14 20V14L24 8Z" fill="white" opacity="0.9"/>
+                    <path d="M24 26L34 20V26L24 32L14 26V20L24 26Z" fill="white" opacity="0.7"/>
+                    <path d="M24 32L34 26V32L24 38L14 32V26L24 32Z" fill="white" opacity="0.5"/>
+                    <circle cx="24" cy="20" r="3" fill="#10b981"/>
+                    <defs>
+                        <linearGradient id="gradient1" x1="0" y1="0" x2="48" y2="48">
+                            <stop offset="0%" stop-color="#1c1917"/>
+                            <stop offset="100%" stop-color="#44403c"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-stone-900 to-stone-700 dark:from-stone-100 dark:to-stone-300 bg-clip-text text-transparent">
+                    Sonic Siphon
+                </h1>
+                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">Demo</span>
+            </div>
+            <button id="themeToggle" class="p-2 rounded-lg bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors">
+                <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Main Flex Container -->
+        <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+            <!-- 1. Download Form -->
+            <div class="flex-shrink-0 lg:w-80 xl:w-96">
+                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
+                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-blue-100 dark:bg-blue-600/30 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+                        </svg>
+                        <h2 class="font-semibold text-stone-900 dark:text-stone-50">Download</h2>
+                        <div class="tooltip">
+                            <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Download section information">
+                                ?
+                            </button>
+                            <div class="tooltip-content">
+                                Download YouTube videos or playlists as MP3 files. Files are saved to Temp first, then you can move them to Output.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <form id="downloadForm" class="flex flex-col h-full">
+                            <div class="mb-3">
+                                <label for="url" class="flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path>
+                                    </svg>
+                                    URL
+                                    <div class="tooltip">
+                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="URL information">
+                                            ?
+                                        </button>
+                                        <div class="tooltip-content">
+                                            Paste a YouTube video or playlist URL. Supports single videos, playlists, and short URLs (youtu.be).
+                                        </div>
+                                    </div>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="url" 
+                                    class="w-full px-3 py-2 border-2 border-stone-300 dark:border-stone-600 rounded-lg text-sm text-stone-900 dark:text-stone-50 bg-white dark:bg-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-300 focus:border-transparent"
+                                    placeholder="https://youtube.com/watch?v=..."
+                                    value="https://youtube.com/watch?v=dQw4w9WgXcQ"
+                                >
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Playback Speed
+                                    <div class="tooltip">
+                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Playback speed information">
+                                            ?
+                                        </button>
+                                        <div class="tooltip-content">
+                                            Adjust playback speed while preserving pitch. The speed change is applied during download, so the MP3 file will play at the selected speed.
+                                        </div>
+                                    </div>
+                                </label>
+                                <div class="grid grid-cols-6 gap-1.5">
+                                    <label><input type="radio" name="speed" value="0.5" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">0.5x</div></label>
+                                    <label><input type="radio" name="speed" value="1" class="sr-only peer" checked><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1x</div></label>
+                                    <label><input type="radio" name="speed" value="1.25" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.25x</div></label>
+                                    <label><input type="radio" name="speed" value="1.5" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.5x</div></label>
+                                    <label><input type="radio" name="speed" value="1.75" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.75x</div></label>
+                                    <label><input type="radio" name="speed" value="2" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">2x</div></label>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="showDemoMessage()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
+                                Download
+                            </button>
+
+                            <div id="statusBox" class="hidden mt-4 p-3 rounded-lg border-l-4 border-blue-400">
+                                <div class="font-semibold text-sm text-stone-900 dark:text-stone-50 mb-1">Demo Mode</div>
+                                <div class="text-xs text-stone-700 dark:text-stone-300">This is a demo. Download functionality requires the full application.</div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Temp Files -->
+            <div class="flex-1 min-w-0">
+                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
+                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-amber-100 dark:bg-amber-600/30 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"></path>
+                            </svg>
+                            <h2 class="font-semibold text-stone-900 dark:text-stone-50">Temp</h2>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300" id="tempFileCount">3</span>
+                            <div class="tooltip">
+                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Temp section information">
+                                    ?
+                                </button>
+                                <div class="tooltip-content">
+                                    Temporary files are newly downloaded. Select files and move them to Output when ready. Files can be deleted from here.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
+                                </svg>
+                            </button>
+                            <button class="px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded hover:bg-green-700 transition-all">
+                                Move (<span id="selectedCount">0</span>) →
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto" id="tempFileList">
+                        <div class="p-3 border-b border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-700/30">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 rounded" style="appearance: auto;">
+                                <span class="text-xs font-semibold text-stone-700 dark:text-stone-300">Select All</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
+                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Example Song - Artist Name.mp3</div>
+                                <div class="text-[10px] text-stone-600 dark:text-stone-400">4.2 MB</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
+                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Another Track - Demo Artist.mp3</div>
+                                <div class="text-[10px] text-stone-600 dark:text-stone-400">3.8 MB</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
+                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
+                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Sample Music File.mp3</div>
+                                <div class="text-[10px] text-stone-600 dark:text-stone-400">5.1 MB</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Output Files -->
+            <div class="flex-shrink-0 lg:w-80 xl:w-96">
+                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
+                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-green-100 dark:bg-green-600/30 flex items-center justify-between">
+                        <div class="flex items-center gap-2 flex-1">
+                            <button class="flex items-center gap-2 lg:flex-none lg:cursor-default cursor-pointer hover:opacity-80 lg:hover:opacity-100 transition-opacity">
+                                <svg class="w-4 h-4 transition-transform lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                                </svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h2 class="font-semibold text-stone-900 dark:text-stone-50">Output</h2>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300" id="outputFileCount">2</span>
+                            </button>
+                            <div class="tooltip">
+                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Output section information">
+                                    ?
+                                </button>
+                                <div class="tooltip-content">
+                                    Final output files. Files moved here from Temp are ready for use. Files cannot be deleted from this section.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto" id="outputFileList">
+                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
+                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Final Track 1.mp3</div>
+                                <div class="text-[10px] text-stone-600 dark:text-stone-400">6.3 MB</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
+                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Final Track 2.mp3</div>
+                                <div class="text-[10px] text-stone-600 dark:text-stone-400">4.7 MB</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Pagination Controls -->
+                    <div class="p-3 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-stone-600 dark:text-stone-400">Show:</span>
+                            <select class="text-xs border border-stone-300 dark:border-stone-600 rounded px-2 py-1 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-50">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span class="text-xs text-stone-600 dark:text-stone-400">Page 1 of 1</span>
+                            <button class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme handling
+        function setTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+                document.getElementById('themeToggle').title = 'Switch to dark mode';
+            } else {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+                document.getElementById('themeToggle').title = 'Switch to light mode';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        // Load saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // Tooltip functionality
+        document.querySelectorAll('.tooltip button').forEach(button => {
+            const tooltip = button.closest('.tooltip');
+            
+            tooltip.addEventListener('mouseenter', function() {
+                if (window.innerWidth >= 1024) {
+                    this.classList.add('active');
+                }
+            });
+            
+            tooltip.addEventListener('mouseleave', function() {
+                if (window.innerWidth >= 1024) {
+                    this.classList.remove('active');
+                }
+            });
+            
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isActive = tooltip.classList.contains('active');
+                
+                document.querySelectorAll('.tooltip').forEach(t => {
+                    if (t !== tooltip) {
+                        t.classList.remove('active');
+                    }
+                });
+                
+                tooltip.classList.toggle('active', !isActive);
+            });
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.tooltip')) {
+                document.querySelectorAll('.tooltip').forEach(t => {
+                    t.classList.remove('active');
+                });
+            }
+        });
+
+        function showDemoMessage() {
+            const statusBox = document.getElementById('statusBox');
+            statusBox.classList.remove('hidden');
+            setTimeout(() => {
+                statusBox.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

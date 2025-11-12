@@ -4,6 +4,14 @@ Sonic Siphon is a sleek, user-friendly web app for downloading YouTube videos an
 
 ---
 
+## 🎨 Demo
+
+Try out the interface: **[Live Demo](https://fossfrog.github.io/sonic-siphon/)**
+
+*Note: The demo shows the UI with mock data. Full functionality requires running the application locally.*
+
+---
+
 ## 🚀 Quick Start (with Docker)
 
 **1. Clone and launch Sonic Siphon:**
