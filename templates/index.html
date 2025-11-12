@@ -6,6 +6,14 @@
     <title>Sonic Siphon</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .brand-icon-shadow {
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+        }
+        .dark .brand-icon-shadow {
+            filter: drop-shadow(0 3px 6px rgba(255, 255, 255, 0.5));
+        }
+    </style>
 </head>
 <body class="min-h-screen transition-colors duration-300 bg-stone-50 dark:bg-gradient-to-br dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 text-stone-900 dark:text-stone-50">
     <!-- Audio Player -->
@@ -25,7 +33,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 brand-icon-shadow">
                     <rect width="48" height="48" rx="12" fill="url(#gradient1)"/>
                     <path d="M24 8L34 14V20L24 26L14 20V14L24 8Z" fill="white" opacity="0.9"/>
                     <path d="M24 26L34 20V26L24 32L14 26V20L24 26Z" fill="white" opacity="0.7"/>
