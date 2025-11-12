@@ -16,6 +16,59 @@
         .dark .brand-icon-shadow {
             filter: drop-shadow(0 3px 6px rgba(255, 255, 255, 0.5));
         }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 1000;
+            background-color: #1c1917;
+            color: #fafaf9;
+            text-align: left;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: normal;
+            width: 200px;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .dark .tooltip-content {
+            background-color: #fafaf9;
+            color: #1c1917;
+        }
+        .tooltip-content::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1c1917 transparent transparent transparent;
+        }
+        .dark .tooltip-content::after {
+            border-color: #fafaf9 transparent transparent transparent;
+        }
+        .tooltip:hover .tooltip-content,
+        .tooltip.active .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+        @media (max-width: 1023px) {
+            .tooltip-content {
+                width: 250px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen transition-colors duration-300 bg-stone-50 dark:bg-gradient-to-br dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 text-stone-900 dark:text-stone-50">
@@ -70,6 +123,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
                         </svg>
                         <h2 class="font-semibold text-stone-900 dark:text-stone-50">Download</h2>
+                        <div class="tooltip">
+                            <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Download section information">
+                                ?
+                            </button>
+                            <div class="tooltip-content">
+                                Download YouTube videos or playlists as MP3 files. Files are saved to Temp first, then you can move them to Output.
+                            </div>
+                        </div>
                     </div>
                     <div class="p-4 flex-1 flex flex-col">
                         <form id="downloadForm" class="flex flex-col h-full">
@@ -79,6 +140,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path>
                                     </svg>
                                     URL
+                                    <div class="tooltip">
+                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="URL information">
+                                            ?
+                                        </button>
+                                        <div class="tooltip-content">
+                                            Paste a YouTube video or playlist URL. Supports single videos, playlists, and short URLs (youtu.be).
+                                        </div>
+                                    </div>
                                 </label>
                                 <input 
                                     type="text" 
@@ -95,6 +164,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     Playback Speed
+                                    <div class="tooltip">
+                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Playback speed information">
+                                            ?
+                                        </button>
+                                        <div class="tooltip-content">
+                                            Adjust playback speed while preserving pitch. The speed change is applied during download, so the MP3 file will play at the selected speed.
+                                        </div>
+                                    </div>
                                 </label>
                                 <div class="grid grid-cols-6 gap-1.5">
                                     <label><input type="radio" name="speed" value="0.5" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">0.5x</div></label>
@@ -137,6 +214,14 @@
                             </svg>
                             <h2 class="font-semibold text-stone-900 dark:text-stone-50">Temp</h2>
                             <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300" id="tempFileCount">0</span>
+                            <div class="tooltip">
+                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Temp section information">
+                                    ?
+                                </button>
+                                <div class="tooltip-content">
+                                    Temporary files are newly downloaded. Select files and move them to Output when ready. Files can be deleted from here.
+                                </div>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <button id="refreshTempBtn" class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
@@ -162,16 +247,26 @@
             <div class="flex-shrink-0 lg:w-80 xl:w-96">
                 <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
                     <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-green-100 dark:bg-green-600/30 flex items-center justify-between">
-                        <button id="toggleOutputBtn" class="flex items-center gap-2 flex-1 lg:flex-none lg:cursor-default cursor-pointer hover:opacity-80 lg:hover:opacity-100 transition-opacity" onclick="toggleOutputSection()">
-                            <svg class="w-4 h-4 transition-transform lg:hidden" id="outputChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
-                            </svg>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <h2 class="font-semibold text-stone-900 dark:text-stone-50">Output</h2>
-                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300" id="outputFileCount">0</span>
-                        </button>
+                        <div class="flex items-center gap-2 flex-1">
+                            <button id="toggleOutputBtn" class="flex items-center gap-2 lg:flex-none lg:cursor-default cursor-pointer hover:opacity-80 lg:hover:opacity-100 transition-opacity" onclick="toggleOutputSection()">
+                                <svg class="w-4 h-4 transition-transform lg:hidden" id="outputChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                                </svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h2 class="font-semibold text-stone-900 dark:text-stone-50">Output</h2>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300" id="outputFileCount">0</span>
+                            </button>
+                            <div class="tooltip">
+                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Output section information">
+                                    ?
+                                </button>
+                                <div class="tooltip-content">
+                                    Final output files. Files moved here from Temp are ready for use. Files cannot be deleted from this section.
+                                </div>
+                            </div>
+                        </div>
                         <div class="flex items-center gap-2">
                             <button id="refreshOutputBtn" class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -253,6 +348,49 @@
         if (itemsPerPageSelect) {
             itemsPerPageSelect.value = outputItemsPerPage.toString();
         }
+
+        // Tooltip functionality for mobile compatibility
+        document.querySelectorAll('.tooltip button').forEach(button => {
+            const tooltip = button.closest('.tooltip');
+            
+            // Desktop: hover
+            tooltip.addEventListener('mouseenter', function() {
+                if (window.innerWidth >= 1024) {
+                    this.classList.add('active');
+                }
+            });
+            
+            tooltip.addEventListener('mouseleave', function() {
+                if (window.innerWidth >= 1024) {
+                    this.classList.remove('active');
+                }
+            });
+            
+            // Mobile: click/tap
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isActive = tooltip.classList.contains('active');
+                
+                // Close all other tooltips
+                document.querySelectorAll('.tooltip').forEach(t => {
+                    if (t !== tooltip) {
+                        t.classList.remove('active');
+                    }
+                });
+                
+                // Toggle this tooltip
+                tooltip.classList.toggle('active', !isActive);
+            });
+        });
+        
+        // Close tooltips when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.tooltip')) {
+                document.querySelectorAll('.tooltip').forEach(t => {
+                    t.classList.remove('active');
+                });
+            }
+        });
 
         // Cookie functions
         function setCookie(name, value, days) {
