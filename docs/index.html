@@ -2,480 +2,1199 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonic Siphon - Mock Demo</title>
-    <meta name="theme-color" content="#2563eb">
-    <meta name="description" content="Download YouTube videos and playlists as MP3 files with adjustable playback speed - Demo">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sonic Siphon</title>
+    <meta name="theme-color" content="#10b981">
+    <meta name="description" content="Download YouTube videos and playlists as MP3 files with adjustable playback speed">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="manifest" href="/static/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
     <style>
-        .brand-icon-shadow {
-            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+        /* Modern Mobile-First Design */
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
-        .dark .brand-icon-shadow {
-            filter: drop-shadow(0 3px 6px rgba(255, 255, 255, 0.5));
+        
+        body {
+            overscroll-behavior: none;
         }
-        .tooltip {
-            position: relative;
-            display: inline-block;
+
+        /* Tab Navigation */
+        .tab-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .tooltip-content {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            z-index: 1000;
-            background-color: #1c1917;
-            color: #fafaf9;
-            text-align: left;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            line-height: 1.4;
-            white-space: normal;
-            width: 200px;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: opacity 0.2s, visibility 0.2s;
-            pointer-events: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        
+        .tab-button.active {
+            color: rgb(16 185 129);
         }
-        .dark .tooltip-content {
-            background-color: #fafaf9;
-            color: #1c1917;
+        
+        .dark .tab-button.active {
+            color: rgb(52 211 153);
         }
-        .tooltip-content::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: #1c1917 transparent transparent transparent;
+        
+        
+        .tab-indicator {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .dark .tooltip-content::after {
-            border-color: #fafaf9 transparent transparent transparent;
+        
+        /* Card Animations */
+        .file-card {
+            transition: all 0.2s ease;
         }
-        .tooltip:hover .tooltip-content,
-        .tooltip.active .tooltip-content {
-            visibility: visible;
-            opacity: 1;
+        
+        .file-card:active {
+            transform: scale(0.98);
         }
-        @media (max-width: 1023px) {
-            .tooltip-content {
-                width: 250px;
-                font-size: 13px;
+        
+        /* Smooth Scroll */
+        .tab-content {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 40;
+        }
+        
+        .fab:active {
+            transform: scale(0.95);
+        }
+        
+        @media (min-width: 768px) {
+            .fab {
+                display: none;
             }
+        }
+        
+        /* Bottom Sheet */
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .bottom-sheet.active {
+            transform: translateY(0);
+        }
+        
+        /* Ripple Effect */
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+            opacity: 0;
+            }
+        }
+        
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        /* Progress Ring */
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .spinner {
+            animation: rotate 1s linear infinite;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            opacity: 0.6;
+        }
+        
+        /* File Grid */
+        @media (min-width: 640px) {
+            .file-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1rem;
+            }
+        }
+        
+        /* Backdrop Blur */
+        .backdrop-blur {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        /* Skeleton Loading */
+        @keyframes shimmer {
+            0% {
+                background-position: -468px 0;
+            }
+            100% {
+                background-position: 468px 0;
+            }
+        }
+        
+        .skeleton {
+            background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+            background-size: 800px 104px;
+            animation: shimmer 1.5s infinite linear;
+        }
+        
+        .dark .skeleton {
+            background: linear-gradient(to right, #2a2a2a 8%, #1a1a1a 18%, #2a2a2a 33%);
         }
     </style>
 </head>
-<body class="min-h-screen transition-colors duration-300 bg-stone-50 dark:bg-gradient-to-br dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 text-stone-900 dark:text-stone-50">
-    <div class="h-screen flex flex-col p-4 gap-4 max-w-[1800px] mx-auto">
+<body class="bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-50 min-h-screen pb-16 md:pb-0">
+    
         <!-- Header -->
-        <div class="flex items-center justify-between flex-shrink-0">
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur border-b border-stone-200 dark:border-stone-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 brand-icon-shadow">
-                    <rect width="48" height="48" rx="12" fill="url(#gradient1)"/>
-                    <path d="M24 8L34 14V20L24 26L14 20V14L24 8Z" fill="white" opacity="0.9"/>
-                    <path d="M24 26L34 20V26L24 32L14 26V20L24 26Z" fill="white" opacity="0.7"/>
-                    <path d="M24 32L34 26V32L24 38L14 32V26L24 32Z" fill="white" opacity="0.5"/>
-                    <circle cx="24" cy="20" r="3" fill="#10b981"/>
-                    <defs>
-                        <linearGradient id="gradient1" x1="0" y1="0" x2="48" y2="48">
-                            <stop offset="0%" stop-color="#1c1917"/>
-                            <stop offset="100%" stop-color="#44403c"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-stone-900 to-stone-700 dark:from-stone-100 dark:to-stone-300 bg-clip-text text-transparent">
+                <img src="/static/favicon.svg" alt="Sonic Siphon" class="w-10 h-10">
+                <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 dark:from-emerald-400 dark:to-emerald-300 bg-clip-text text-transparent">
                     Sonic Siphon
                 </h1>
-                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">Demo</span>
             </div>
-            <button id="themeToggle" class="p-2 rounded-lg bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors">
-                <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            <div class="flex items-center gap-2">
+                <!-- Jobs Notification Bell -->
+                <div class="relative">
+                    <button id="jobsNotificationBtn" class="relative p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
+                        <!-- Badge -->
+                        <span id="jobsBadge" class="hidden absolute -top-1 -right-1 bg-emerald-600 dark:bg-emerald-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5"></span>
             </button>
-        </div>
-
-        <!-- Main Flex Container -->
-        <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
-            <!-- 1. Download Form -->
-            <div class="flex-shrink-0 lg:w-80 xl:w-96">
-                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
-                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-blue-100 dark:bg-blue-600/30 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+                    
+                    <!-- Jobs Dropdown -->
+                    <div id="jobsDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-stone-100 dark:bg-stone-900 rounded-xl shadow-xl border border-stone-300 dark:border-stone-800 overflow-hidden max-h-[80vh] flex flex-col">
+                        <div class="p-4 border-b border-stone-300 dark:border-stone-800 flex items-center justify-between bg-stone-200 dark:bg-stone-800/50">
+                            <h3 class="font-semibold">Active Jobs</h3>
+                            <button id="closeJobsDropdown" class="p-1 hover:bg-stone-200 dark:hover:bg-stone-700 rounded transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
-                        <h2 class="font-semibold text-stone-900 dark:text-stone-50">Download</h2>
-                        <div class="tooltip">
-                            <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Download section information">
-                                ?
                             </button>
-                            <div class="tooltip-content">
-                                Download YouTube videos or playlists as MP3 files. Files are saved to Temp first, then you can move them to Output.
                             </div>
+                        <div id="jobsList" class="overflow-y-auto flex-1">
+                            <!-- Jobs will be rendered here -->
                         </div>
                     </div>
-                    <div class="p-4 flex-1 flex flex-col">
-                        <form id="downloadForm" class="flex flex-col h-full">
-                            <div class="mb-3">
-                                <label for="url" class="flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path>
+                </div>
+                
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                                     </svg>
-                                    URL
-                                    <div class="tooltip">
-                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="URL information">
-                                            ?
+                    <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
                                         </button>
-                                        <div class="tooltip-content">
-                                            Paste a YouTube video or playlist URL. Supports single videos, playlists, and short URLs (youtu.be).
                                         </div>
                                     </div>
-                                </label>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- Download Section -->
+        <div class="bg-stone-100 dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-300 dark:border-stone-800 p-6">
+            <h2 class="text-lg font-semibold mb-4">Download Music</h2>
+            
+            <form id="downloadForm" class="space-y-4">
+                <!-- URL Input -->
+                <div class="relative">
                                 <input 
                                     type="text" 
                                     id="url" 
-                                    class="w-full px-3 py-2 border-2 border-stone-300 dark:border-stone-600 rounded-lg text-sm text-stone-900 dark:text-stone-50 bg-white dark:bg-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-300 focus:border-transparent"
-                                    placeholder="https://youtube.com/watch?v=..."
-                                    value="https://youtube.com/watch?v=dQw4w9WgXcQ"
-                                >
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="flex items-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        name="url" 
+                        placeholder="Paste YouTube URL here..." 
+                                    required
+                        class="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 rounded-xl focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors pr-10"
+                    >
+                    <button type="button" id="clearUrlBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
-                                    Playback Speed
-                                    <div class="tooltip">
-                                        <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Playback speed information">
-                                            ?
                                         </button>
-                                        <div class="tooltip-content">
-                                            Adjust playback speed while preserving pitch. The speed change is applied during download, so the MP3 file will play at the selected speed.
-                                        </div>
-                                    </div>
-                                </label>
-                                <div class="grid grid-cols-6 gap-1.5">
-                                    <label><input type="radio" name="speed" value="0.5" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">0.5x</div></label>
-                                    <label><input type="radio" name="speed" value="1" class="sr-only peer" checked><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1x</div></label>
-                                    <label><input type="radio" name="speed" value="1.25" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.25x</div></label>
-                                    <label><input type="radio" name="speed" value="1.5" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.5x</div></label>
-                                    <label><input type="radio" name="speed" value="1.75" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">1.75x</div></label>
-                                    <label><input type="radio" name="speed" value="2" class="sr-only peer"><div class="py-1.5 text-center border-2 border-stone-300 dark:border-stone-600 rounded cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-700 peer-checked:bg-blue-600 peer-checked:dark:bg-blue-600 peer-checked:text-white peer-checked:border-transparent transition-all">2x</div></label>
+                            </div>
+
+                            <!-- Preview Box -->
+                <div id="previewBox" class="hidden bg-gradient-to-br from-emerald-50 to-emerald-50 dark:from-emerald-950/20 dark:to-emerald-950/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+                                <div id="previewContent"></div>
+                            </div>
+
+                <!-- Speed Selector -->
+                <div>
+                    <label for="speedSelector" class="block text-sm font-medium mb-3">Playback Speed</label>
+                    <select 
+                        id="speedSelector" 
+                        class="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-base font-medium cursor-pointer"
+                    >
+                        <option value="0.5">0.5x - Slowest</option>
+                        <option value="0.75">0.75x - Slower</option>
+                        <option value="1" selected>1x - Normal</option>
+                        <option value="1.25">1.25x - Faster</option>
+                        <option value="1.5">1.5x - Fast</option>
+                        <option value="1.75">1.75x - Very Fast</option>
+                        <option value="2">2x - Fastest</option>
+                    </select>
                                 </div>
-                            </div>
 
-                            <button type="button" onclick="showDemoMessage()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
-                                Download
-                            </button>
-
-                            <div id="statusBox" class="hidden mt-4 p-3 rounded-lg border-l-4 border-blue-400">
-                                <div class="font-semibold text-sm text-stone-900 dark:text-stone-50 mb-1">Demo Mode</div>
-                                <div class="text-xs text-stone-700 dark:text-stone-300">This is a demo. Download functionality requires the full application.</div>
-                            </div>
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="downloadBtn" 
+                    disabled
+                    class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 disabled:from-stone-300 disabled:to-stone-400 dark:disabled:from-stone-700 dark:disabled:to-stone-800 disabled:cursor-not-allowed disabled:transform-none text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/30 disabled:shadow-none"
+                >
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </span>
+                </button>
                         </form>
                     </div>
+
+        <!-- Tab Navigation -->
+        <div class="sticky top-[57px] z-40 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur -mx-4 px-4">
+            <div class="relative flex border-b border-stone-300 dark:border-stone-800">
+                <button class="tab-button active flex-1 py-3 text-sm font-medium transition-colors" data-tab="temp">
+                    Temp <span class="tempCountBadge ml-1 text-xs opacity-60">(0)</span>
+                </button>
+                <button class="tab-button flex-1 py-3 text-sm font-medium transition-colors" data-tab="output">
+                    Output <span class="outputCountBadge ml-1 text-xs opacity-60">(0)</span>
+                </button>
+                <div class="tab-indicator absolute bottom-0 h-0.5 bg-emerald-600 dark:bg-emerald-400 transition-transform duration-300" style="width: 50%; transform: translateX(0%)"></div>
                 </div>
             </div>
 
-            <!-- 2. Temp Files -->
-            <div class="flex-1 min-w-0">
-                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
-                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-amber-100 dark:bg-amber-600/30 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"></path>
+        <!-- Content Sections -->
+        <div class="space-y-6">
+            
+            <!-- Temp Files Section -->
+            <div id="tempSection" class="tab-content bg-stone-100 dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-300 dark:border-stone-800 overflow-hidden">
+                <div class="p-4 md:p-6 border-b border-stone-300 dark:border-stone-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Temp Files</h3>
+                        <p class="text-sm text-stone-500 dark:text-stone-400 mt-1" id="tempFileCount">0 files</p>
+                        </div>
+                    <div class="flex gap-2">
+                        <button id="selectAllBtn" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                            <span class="hidden sm:inline">Select All</span>
+                            </button>
+                        <button id="moveToDoneBtn" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 dark:disabled:bg-stone-700 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                             </svg>
-                            <h2 class="font-semibold text-stone-900 dark:text-stone-50">Temp</h2>
-                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300" id="tempFileCount">3</span>
-                            <div class="tooltip">
-                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Temp section information">
-                                    ?
-                                </button>
-                                <div class="tooltip-content">
-                                    Temporary files are newly downloaded. Select files and move them to Output when ready. Files can be deleted from here.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
-                                </svg>
-                            </button>
-                            <button class="px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded hover:bg-green-700 transition-all">
-                                Move (<span id="selectedCount">0</span>) →
+                            <span class="hidden sm:inline">Move</span>
+                            <span id="selectedCount" class="hidden"></span>
+                        </button>
+                        <button id="refreshTempBtn" class="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
                             </button>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto" id="tempFileList">
-                        <div class="p-3 border-b border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-700/30">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" class="w-4 h-4 rounded" style="appearance: auto;">
-                                <span class="text-xs font-semibold text-stone-700 dark:text-stone-300">Select All</span>
-                            </label>
-                        </div>
-                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
-                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Example Song - Artist Name.mp3</div>
-                                <div class="text-[10px] text-stone-600 dark:text-stone-400">4.2 MB</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
-                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Another Track - Demo Artist.mp3</div>
-                                <div class="text-[10px] text-stone-600 dark:text-stone-400">3.8 MB</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 rounded flex-shrink-0" style="appearance: auto;">
-                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Sample Music File.mp3</div>
-                                <div class="text-[10px] text-stone-600 dark:text-stone-400">5.1 MB</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="tempFileList" class="divide-y divide-stone-200 dark:divide-stone-800"></div>
             </div>
 
-            <!-- 3. Output Files -->
-            <div class="flex-shrink-0 lg:w-80 xl:w-96">
-                <div class="bg-white dark:bg-stone-800/50 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 h-full flex flex-col">
-                    <div class="p-4 border-b border-stone-200 dark:border-stone-700 bg-green-100 dark:bg-green-600/30 flex items-center justify-between">
-                        <div class="flex items-center gap-2 flex-1">
-                            <button class="flex items-center gap-2 lg:flex-none lg:cursor-default cursor-pointer hover:opacity-80 lg:hover:opacity-100 transition-opacity">
-                                <svg class="w-4 h-4 transition-transform lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+            <!-- Output Files Section -->
+            <div id="outputSection" class="tab-content hidden bg-stone-100 dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-300 dark:border-stone-800 overflow-hidden">
+                <div class="p-4 md:p-6 border-b border-stone-300 dark:border-stone-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold">Output Files</h3>
+                        <p class="text-sm text-stone-500 dark:text-stone-400 mt-1" id="outputFileCount">0 files</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="outputItemsPerPage" class="px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-sm">
+                            <option value="5">5 per page</option>
+                            <option value="10">10 per page</option>
+                            <option value="25">25 per page</option>
+                            <option value="50">50 per page</option>
+                        </select>
+                        <button id="refreshOutputBtn" class="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <h2 class="font-semibold text-stone-900 dark:text-stone-50">Output</h2>
-                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300" id="outputFileCount">2</span>
                             </button>
-                            <div class="tooltip">
-                                <button type="button" class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-400 dark:hover:bg-stone-500 flex items-center justify-center text-[10px] font-bold transition-colors" aria-label="Output section information">
-                                    ?
-                                </button>
-                                <div class="tooltip-content">
-                                    Final output files. Files moved here from Temp are ready for use. Files cannot be deleted from this section.
                                 </div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button class="p-1.5 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors" title="Refresh">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
-                                </svg>
+                <div id="outputFileList" class="divide-y divide-stone-200 dark:divide-stone-800"></div>
+                <div id="outputPagination" class="hidden p-4 border-t border-stone-300 dark:border-stone-800 flex items-center justify-between text-sm">
+                    <button id="outputPrevBtn" class="px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Previous
+                    </button>
+                    <span id="outputPageInfo" class="text-stone-600 dark:text-stone-400"></span>
+                    <button id="outputNextBtn" class="px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next
                             </button>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto" id="outputFileList">
-                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
-                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Final Track 1.mp3</div>
-                                <div class="text-[10px] text-stone-600 dark:text-stone-400">6.3 MB</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                            </div>
+
                         </div>
-                        <div class="flex items-center gap-2 p-3 border-b border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors">
-                            <div class="w-10 h-10 rounded bg-gradient-to-br from-stone-300 to-stone-400 dark:from-stone-600 dark:to-stone-700 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-medium text-stone-900 dark:text-stone-50 truncate">Final Track 2.mp3</div>
-                                <div class="text-[10px] text-stone-600 dark:text-stone-400">4.7 MB</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded hover:bg-stone-200 dark:hover:bg-stone-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+    </main>
+
+    <!-- Audio Player (Fixed Bottom on Desktop) -->
+    <div id="audioPlayer" class="hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur border-t border-stone-200 dark:border-stone-800 z-40 md:z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center gap-4">
+                <img id="audioPlayerThumbnail" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="">
+                <div class="flex-1 min-w-0">
+                    <div id="audioPlayerTitle" class="text-sm font-medium truncate">Song Title</div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span id="currentTime" class="text-xs text-stone-500 dark:text-stone-400">0:00</span>
+                        <input 
+                            type="range" 
+                            id="seekBar" 
+                            min="0" 
+                            max="100" 
+                            value="0" 
+                            class="flex-1 h-1 bg-stone-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer"
+                        >
+                        <span id="duration" class="text-xs text-stone-500 dark:text-stone-400">0:00</span>
                     </div>
-                    <!-- Pagination Controls -->
-                    <div class="p-3 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-stone-600 dark:text-stone-400">Show:</span>
-                            <select class="text-xs border border-stone-300 dark:border-stone-600 rounded px-2 py-1 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-50">
-                                <option value="5">5</option>
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="all">All</option>
-                            </select>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    <button id="playPauseBtn" class="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
+                        <svg id="playIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <svg id="pauseIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </button>
-                            <span class="text-xs text-stone-600 dark:text-stone-400">Page 1 of 1</span>
-                            <button class="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    <button id="closePlayerBtn" class="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
                     </div>
                 </div>
+        <audio id="audioElement"></audio>
             </div>
-        </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur border-t border-stone-200 dark:border-stone-800 z-30">
+        <div class="flex justify-around py-2">
+            <button class="tab-button active flex flex-col items-center gap-1 px-4 py-2 transition-colors" data-tab="temp">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-xs font-medium">Temp</span>
+            </button>
+            <button class="tab-button flex flex-col items-center gap-1 px-4 py-2 transition-colors" data-tab="output">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-xs font-medium">Output</span>
+            </button>
     </div>
+    </nav>
 
     <script>
-        // Theme handling
-        function setTheme(theme) {
-            if (theme === 'light') {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-                document.getElementById('themeToggle').title = 'Switch to dark mode';
-            } else {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
-                document.getElementById('themeToggle').title = 'Switch to light mode';
-            }
-            localStorage.setItem('theme', theme);
-        }
+        // Initialize
+        const form = document.getElementById('downloadForm');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const tempFileList = document.getElementById('tempFileList');
+        const outputFileList = document.getElementById('outputFileList');
+        const tempFileCount = document.getElementById('tempFileCount');
+        const outputFileCount = document.getElementById('outputFileCount');
+        const moveToDoneBtn = document.getElementById('moveToDoneBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const selectedCount = document.getElementById('selectedCount');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audioElement');
+        const audioPlayerTitle = document.getElementById('audioPlayerTitle');
+        const audioPlayerThumbnail = document.getElementById('audioPlayerThumbnail');
+        const themeToggle = document.getElementById('themeToggle');
+        const previewBox = document.getElementById('previewBox');
+        const previewContent = document.getElementById('previewContent');
+        const urlInput = document.getElementById('url');
+        const clearUrlBtn = document.getElementById('clearUrlBtn');
+        const jobsList = document.getElementById('jobsList');
+        const jobsNotificationBtn = document.getElementById('jobsNotificationBtn');
+        const jobsDropdown = document.getElementById('jobsDropdown');
+        const closeJobsDropdown = document.getElementById('closeJobsDropdown');
+        const refreshTempBtn = document.getElementById('refreshTempBtn');
+        const refreshOutputBtn = document.getElementById('refreshOutputBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const closePlayerBtn = document.getElementById('closePlayerBtn');
+        const seekBar = document.getElementById('seekBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
 
-        // Load saved theme or default to dark
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-
-        // Theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // Tooltip functionality
-        document.querySelectorAll('.tooltip button').forEach(button => {
-            const tooltip = button.closest('.tooltip');
-            
-            tooltip.addEventListener('mouseenter', function() {
-                if (window.innerWidth >= 1024) {
-                    this.classList.add('active');
-                }
-            });
-            
-            tooltip.addEventListener('mouseleave', function() {
-                if (window.innerWidth >= 1024) {
-                    this.classList.remove('active');
-                }
-            });
-            
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const isActive = tooltip.classList.contains('active');
-                
-                document.querySelectorAll('.tooltip').forEach(t => {
-                    if (t !== tooltip) {
-                        t.classList.remove('active');
-                    }
-                });
-                
-                tooltip.classList.toggle('active', !isActive);
+        let currentPlayingFile = null;
+        let activePollIntervals = new Map();
+        let currentPlayingLocation = null;
+        let selectedFiles = new Set();
+        let previewTimeout = null;
+        let selectedSpeed = 1.0;
+        
+        // Pagination state
+        let allOutputFiles = [];
+        let outputCurrentPage = 1;
+        let outputItemsPerPage = window.innerWidth < 768 ? 5 : 10;
+        
+        // Tab management
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabSections = {
+            temp: document.getElementById('tempSection'),
+            output: document.getElementById('outputSection')
+        };
+        
+        let activeTab = 'temp';
+        
+        // Tab switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+                switchTab(tab);
             });
         });
         
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.tooltip')) {
-                document.querySelectorAll('.tooltip').forEach(t => {
-                    t.classList.remove('active');
-                });
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            // Update buttons
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === tab) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update indicator
+            const indicator = document.querySelector('.tab-indicator');
+            if (indicator) {
+                const index = ['temp', 'output'].indexOf(tab);
+                indicator.style.transform = `translateX(${index * 100}%)`;
+            }
+            
+            // Show/hide sections
+            Object.keys(tabSections).forEach(key => {
+                if (key === tab) {
+                    tabSections[key].classList.remove('hidden');
+                } else {
+                    tabSections[key].classList.add('hidden');
+                }
+            });
+        }
+        
+        // Speed selector
+        const speedSelector = document.getElementById('speedSelector');
+        speedSelector.addEventListener('change', () => {
+            selectedSpeed = parseFloat(speedSelector.value);
+        });
+        
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        // Initialize theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // URL input handling
+        urlInput.addEventListener('input', () => {
+            clearUrlBtn.classList.toggle('hidden', !urlInput.value);
+            
+            clearTimeout(previewTimeout);
+            if (urlInput.value.trim()) {
+                previewTimeout = setTimeout(() => {
+                    loadPreview(urlInput.value.trim());
+                }, 500);
+            } else {
+                previewBox.classList.add('hidden');
+                downloadBtn.disabled = true;
             }
         });
-
-        function showDemoMessage() {
-            const statusBox = document.getElementById('statusBox');
-            statusBox.classList.remove('hidden');
+        
+        clearUrlBtn.addEventListener('click', () => {
+            urlInput.value = '';
+            clearUrlBtn.classList.add('hidden');
+            previewBox.classList.add('hidden');
+            downloadBtn.disabled = true;
+            urlInput.focus();
+        });
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = urlInput.value.trim();
+            if (!url) return;
+            
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, speed: selectedSpeed })
+                });
+                
+                if (response.ok) {
+                    showNotification('Download started!', 'success');
+                    urlInput.value = '';
+                    clearUrlBtn.classList.add('hidden');
+                    previewBox.classList.add('hidden');
+                    downloadBtn.disabled = true;
+                    loadJobs();
+                } else {
+                    const error = await response.text();
+                    showNotification(error || 'Download failed', 'error');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showNotification('Download failed', 'error');
+            }
+        });
+        
+        // Audio player controls
+        playPauseBtn.addEventListener('click', () => {
+            if (audioElement.paused) {
+                audioElement.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                audioElement.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        });
+        
+        closePlayerBtn.addEventListener('click', () => {
+            audioElement.pause();
+            audioPlayer.classList.add('hidden');
+            currentPlayingFile = null;
+            document.querySelectorAll('.file-card').forEach(card => {
+                card.classList.remove('ring-2', 'ring-emerald-500');
+            });
+        });
+        
+        audioElement.addEventListener('timeupdate', () => {
+            if (audioElement.duration) {
+                const percent = (audioElement.currentTime / audioElement.duration) * 100;
+                seekBar.value = percent;
+                currentTimeEl.textContent = formatTime(audioElement.currentTime);
+                durationEl.textContent = formatTime(audioElement.duration);
+            }
+        });
+        
+        seekBar.addEventListener('input', () => {
+            const time = (seekBar.value / 100) * audioElement.duration;
+            audioElement.currentTime = time;
+        });
+        
+        // Utility functions
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function escapeJs(text) {
+            return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        }
+        
+        function handleThumbnailError(event, filename, location) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center flex-shrink-0 cursor-pointer';
+            placeholder.onclick = () => playFile(filename, location);
+            placeholder.innerHTML = '<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>';
+            event.target.replaceWith(placeholder);
+        }
+        
+        function getPlaylistIcon() {
+            return `<svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>`;
+        }
+        
+        function showNotification(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-emerald-500'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 ${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg z-50 transition-all transform translate-x-0`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
             setTimeout(() => {
-                statusBox.classList.add('hidden');
+                notification.style.transform = 'translateX(120%)';
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
+
+        async function loadPreview(url) {
+            try {
+                previewBox.classList.remove('hidden');
+                previewContent.innerHTML = '<div class="text-xs text-stone-500 dark:text-stone-400 text-center py-2 flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Loading...</div>';
+                downloadBtn.disabled = true;
+                
+                const response = await fetch('/preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    previewContent.innerHTML = `<div class="text-xs text-red-600 dark:text-red-400">${data.error}</div>`;
+                    downloadBtn.disabled = true;
+                    return;
+                }
+                
+                const hasPlaylistParam = url.includes('list=') || url.includes('/playlist');
+                const isPrivatePlaylist = hasPlaylistParam && (data.type !== 'playlist' || data.count === 1);
+                
+                if (data.type === 'playlist') {
+                    previewContent.innerHTML = `
+                        <div class="flex gap-3">
+                            ${data.thumbnail ? `<img src="${data.thumbnail}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : ''}
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-semibold text-stone-900 dark:text-stone-50 mb-1 line-clamp-2">${escapeHtml(data.title)}</div>
+                                <div class="text-xs text-stone-600 dark:text-stone-400">${getPlaylistIcon()} Playlist • ${data.count} videos</div>
+                                ${data.count === 1 && hasPlaylistParam ? `
+                                    <div class="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg text-xs text-yellow-900 dark:text-yellow-200">
+                                        <strong>⚠️ Warning:</strong> Only 1 video detected. If this playlist has more videos, it may be <strong>Private</strong>. Change to <strong>Unlisted</strong> or <strong>Public</strong> in YouTube.
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const duration = data.duration ? formatDuration(data.duration) : '';
+                    previewContent.innerHTML = `
+                        <div class="flex gap-3">
+                            ${data.thumbnail ? `<img src="${data.thumbnail}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : ''}
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-semibold text-stone-900 dark:text-stone-50 mb-1 line-clamp-2">${escapeHtml(data.title)}</div>
+                                <div class="text-xs text-stone-600 dark:text-stone-400">${escapeHtml(data.uploader)}${duration ? ' • ' + duration : ''}</div>
+                                ${isPrivatePlaylist ? `
+                                    <div class="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg text-xs text-yellow-900 dark:text-yellow-200">
+                                        <strong>⚠️ Warning:</strong> Playlist parameter detected but only 1 video shown. May be <strong>Private</strong>. Change to <strong>Unlisted</strong>/<strong>Public</strong>.
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Enable download button after successful preview load
+                downloadBtn.disabled = false;
+            } catch (error) {
+                console.error('Preview error:', error);
+                previewBox.classList.add('hidden');
+                downloadBtn.disabled = true;
+            }
+        }
+        
+        // Load files
+        async function loadFiles() {
+            try {
+                const response = await fetch('/files');
+                const data = await response.json();
+
+                renderTempFiles(data.temp_files || []);
+                allOutputFiles = data.output_files || [];
+                renderOutputFiles();
+            } catch (error) {
+                console.error('Failed to load files:', error);
+            }
+        }
+        
+        function renderTempFiles(files) {
+            tempFileCount.textContent = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+            document.querySelectorAll('.tempCountBadge').forEach(el => el.textContent = `(${files.length})`);
+            
+            if (files.length === 0) {
+                    tempFileList.innerHTML = `
+                    <div class="empty-state p-12 text-center">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-stone-300 dark:text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-stone-500 dark:text-stone-400">No temp files yet</p>
+                        </div>
+                `;
+                return;
+            }
+            
+            tempFileList.innerHTML = files.map(file => `
+                <div class="file-card p-4" data-filename="${escapeHtml(file.name)}" data-location="temp">
+                    <div class="flex items-center gap-3">
+                        <input 
+                            type="checkbox" 
+                            class="file-checkbox w-5 h-5 rounded border-stone-300 dark:border-stone-600 text-emerald-600 focus:ring-emerald-500"
+                            data-filename="${escapeHtml(file.name)}"
+                        >
+                        ${file.has_thumbnail ? `<img src="/thumbnail/temp/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'temp')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'temp')">` : 
+                        `<div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'temp')">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                            </svg>
+                        </div>`}
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium truncate cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400" onclick="playFile('${escapeJs(file.name)}', 'temp')">${escapeHtml(file.name)}</div>
+                            <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">${formatFileSize(file.size)}</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="playFile('${escapeJs(file.name)}', 'temp')" class="p-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors" title="Play">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteFile('${escapeJs(file.name)}', 'temp')" class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors" title="Delete">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add checkbox listeners
+            document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const filename = checkbox.dataset.filename;
+                    if (checkbox.checked) {
+                        selectedFiles.add(filename);
+                } else {
+                        selectedFiles.delete(filename);
+                    }
+                    updateMoveButton();
+                });
+            });
+        }
+        
+        function renderOutputFiles() {
+            const totalFiles = allOutputFiles.length;
+            outputFileCount.textContent = `${totalFiles} file${totalFiles !== 1 ? 's' : ''}`;
+            document.querySelectorAll('.outputCountBadge').forEach(el => el.textContent = `(${totalFiles})`);
+            
+            if (totalFiles === 0) {
+                    outputFileList.innerHTML = `
+                    <div class="empty-state p-12 text-center">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-stone-300 dark:text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-stone-500 dark:text-stone-400">No output files yet</p>
+                        </div>
+                    `;
+                    document.getElementById('outputPagination').classList.add('hidden');
+                return;
+            }
+            
+            // Pagination
+            const totalPages = Math.ceil(totalFiles / outputItemsPerPage);
+            const startIdx = (outputCurrentPage - 1) * outputItemsPerPage;
+            const endIdx = Math.min(startIdx + outputItemsPerPage, totalFiles);
+            const pageFiles = allOutputFiles.slice(startIdx, endIdx);
+            
+            outputFileList.innerHTML = pageFiles.map(file => `
+                <div class="file-card p-4" data-filename="${escapeHtml(file.name)}" data-location="output">
+                    <div class="flex items-center gap-3">
+                        ${file.has_thumbnail ? `<img src="/thumbnail/output/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'output')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'output')">` : 
+                        `<div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'output')">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                            </svg>
+                        </div>`}
+                    <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium truncate cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400" onclick="playFile('${escapeJs(file.name)}', 'output')">${escapeHtml(file.name)}</div>
+                            <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">${formatFileSize(file.size)}</div>
+                    </div>
+                        <button onclick="playFile('${escapeJs(file.name)}', 'output')" class="p-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-colors" title="Play">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Update pagination
+            if (totalPages > 1) {
+                document.getElementById('outputPagination').classList.remove('hidden');
+                document.getElementById('outputPageInfo').textContent = `Page ${outputCurrentPage} of ${totalPages}`;
+                document.getElementById('outputPrevBtn').disabled = outputCurrentPage === 1;
+                document.getElementById('outputNextBtn').disabled = outputCurrentPage === totalPages;
+            } else {
+                document.getElementById('outputPagination').classList.add('hidden');
+            }
+        }
+        
+        // Pagination controls
+        document.getElementById('outputPrevBtn').addEventListener('click', () => {
+            if (outputCurrentPage > 1) {
+                outputCurrentPage--;
+                renderOutputFiles();
+            }
+        });
+        
+        document.getElementById('outputNextBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(allOutputFiles.length / outputItemsPerPage);
+            if (outputCurrentPage < totalPages) {
+                outputCurrentPage++;
+                renderOutputFiles();
+            }
+        });
+        
+        document.getElementById('outputItemsPerPage').addEventListener('change', (e) => {
+            outputItemsPerPage = parseInt(e.target.value);
+            outputCurrentPage = 1;
+            renderOutputFiles();
+        });
+        
+        // File actions
+        function playFile(filename, location) {
+            const url = `/stream/${location}/${encodeURIComponent(filename)}`;
+            audioElement.src = url;
+            audioElement.play();
+            audioPlayerTitle.textContent = filename;
+            
+            // Load thumbnail
+            fetch(`/thumbnail/${location}/${encodeURIComponent(filename)}`)
+                .then(res => res.ok ? res.blob() : null)
+                .then(blob => {
+                    if (blob) {
+                        audioPlayerThumbnail.src = URL.createObjectURL(blob);
+                } else {
+                        audioPlayerThumbnail.src = '';
+                    }
+                });
+            
+            audioPlayer.classList.remove('hidden');
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+            currentPlayingFile = filename;
+            currentPlayingLocation = location;
+            
+            // Highlight playing file
+            document.querySelectorAll('.file-card').forEach(card => {
+                card.classList.remove('ring-2', 'ring-emerald-500');
+            });
+            document.querySelector(`.file-card[data-filename="${filename}"][data-location="${location}"]`)?.classList.add('ring-2', 'ring-emerald-500');
+        }
+        
+        function streamFile(filename, location) {
+            const url = `/stream/${location}/${encodeURIComponent(filename)}`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
+        
+        async function deleteFile(filename, location) {
+            if (!confirm(`Delete ${filename}?`)) return;
+            
+            try {
+                const response = await fetch(`/delete/${location}/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('File deleted', 'success');
+                    loadFiles();
+                } else {
+                    showNotification('Delete failed', 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showNotification('Delete failed', 'error');
+            }
+        }
+        
+        function updateMoveButton() {
+            const count = selectedFiles.size;
+            moveToDoneBtn.disabled = count === 0;
+            if (count > 0) {
+                selectedCount.textContent = `(${count})`;
+                selectedCount.classList.remove('hidden');
+            } else {
+                selectedCount.classList.add('hidden');
+            }
+        }
+        
+        moveToDoneBtn.addEventListener('click', async () => {
+            if (selectedFiles.size === 0) return;
+            
+            try {
+                const response = await fetch('/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filenames: Array.from(selectedFiles) })
+                });
+                
+                const result = await response.json();
+                showNotification(`Moved ${result.moved} file(s)`, 'success');
+                selectedFiles.clear();
+                updateMoveButton();
+                loadFiles();
+            } catch (error) {
+                console.error('Move error:', error);
+                showNotification('Move failed', 'error');
+            }
+        });
+        
+        selectAllBtn.addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('#tempFileList .file-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+                const filename = checkbox.dataset.filename;
+                if (checkbox.checked) {
+                    selectedFiles.add(filename);
+            } else {
+                    selectedFiles.delete(filename);
+                }
+            });
+            
+            updateMoveButton();
+            // Update button text
+            selectAllBtn.querySelector('span').textContent = allChecked ? 'Select All' : 'Deselect All';
+        });
+        
+        // Jobs
+        async function loadJobs() {
+            try {
+                const response = await fetch('/jobs');
+                const data = await response.json();
+                
+                // Extract jobs array from response (backend returns {jobs: [...]})
+                const jobs = Array.isArray(data.jobs) ? data.jobs : [];
+                
+                const activeJobs = jobs.filter(job => 
+                    job.status !== 'completed' && job.status !== 'error' && job.status !== 'cancelled'
+                );
+                renderJobs(jobs);
+                
+                // Update badge
+                const badge = document.getElementById('jobsBadge');
+                if (activeJobs.length > 0) {
+                    badge.textContent = activeJobs.length;
+                    badge.classList.remove('hidden');
+            } else {
+                    badge.classList.add('hidden');
+                }
+                
+                // Update page title with active job count
+                if (activeJobs.length > 0) {
+                    document.title = `(${activeJobs.length}) Sonic Siphon`;
+                } else {
+                    document.title = 'Sonic Siphon';
+                }
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+            }
+        }
+        
+        function renderJobs(jobs) {
+            if (jobs.length === 0) {
+                jobsList.innerHTML = `
+                    <div class="empty-state p-8 text-center">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-stone-300 dark:text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                        <p class="text-sm text-stone-500 dark:text-stone-400">No active jobs</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            jobsList.innerHTML = jobs.map(job => {
+                const statusIcons = {
+                    pending: '<svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                    downloading: '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>',
+                    processing: '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>',
+                    completed: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+                    error: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+                    cancelled: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>'
+                };
+                
+                const statusColors = {
+                    pending: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20',
+                    downloading: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
+                    processing: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
+                    completed: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+                    error: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+                    cancelled: 'text-stone-500 dark:text-stone-400 bg-stone-50 dark:bg-stone-800'
+                };
+                
+                // Extract title from URL (simplified)
+                let title = job.url;
+                try {
+                    const url = new URL(job.url);
+                    title = url.hostname + url.pathname;
+                } catch (e) {
+                    // Keep original URL if parsing fails
+                }
+                
+                return `
+                    <div class="p-3 border-b border-stone-300 dark:border-stone-800 last:border-b-0 hover:bg-stone-200 dark:hover:bg-stone-800/30 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${statusColors[job.status] || statusColors.pending}">
+                                ${statusIcons[job.status] || statusIcons.pending}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">${escapeHtml(title)}</div>
+                                <div class="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                                    ${job.status} • ${job.speed}x speed
+                                </div>
+                                ${job.message ? `<div class="text-xs text-stone-600 dark:text-stone-400 mt-1 line-clamp-2">${escapeHtml(job.message)}</div>` : ''}
+                            </div>
+                            ${job.status !== 'completed' && job.status !== 'error' && job.status !== 'cancelled' ? `
+                                <button onclick="cancelJob('${job.id}')" class="flex-shrink-0 p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 text-stone-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors" title="Cancel">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function cancelJob(jobId) {
+            try {
+                const response = await fetch(`/jobs/${jobId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('Job cancelled', 'success');
+                    loadJobs();
+                } else {
+                    showNotification('Cancel failed', 'error');
+                }
+            } catch (error) {
+                console.error('Cancel error:', error);
+                showNotification('Cancel failed', 'error');
+            }
+        }
+        
+        // Refresh buttons
+        refreshTempBtn.addEventListener('click', () => {
+            refreshTempBtn.querySelector('svg').classList.add('animate-spin');
+            loadFiles().finally(() => {
+                setTimeout(() => {
+                    refreshTempBtn.querySelector('svg').classList.remove('animate-spin');
+                }, 300);
+            });
+        });
+        
+        refreshOutputBtn.addEventListener('click', () => {
+            refreshOutputBtn.querySelector('svg').classList.add('animate-spin');
+            loadFiles().finally(() => {
+                            setTimeout(() => {
+                    refreshOutputBtn.querySelector('svg').classList.remove('animate-spin');
+                }, 300);
+            });
+        });
+        
+        // Jobs notification dropdown
+        jobsNotificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            jobsDropdown.classList.toggle('hidden');
+        });
+        
+        closeJobsDropdown.addEventListener('click', () => {
+            jobsDropdown.classList.add('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!jobsNotificationBtn.contains(e.target) && !jobsDropdown.contains(e.target)) {
+                jobsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Initialize
+        loadFiles();
+        loadJobs();
+        setInterval(loadFiles, 5000);
+        setInterval(loadJobs, 2000);
+        
+        // Set initial items per page
+        document.getElementById('outputItemsPerPage').value = outputItemsPerPage.toString();
     </script>
 </body>
 </html>
-
