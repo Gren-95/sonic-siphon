@@ -32,3 +32,14 @@ Thumbs.db
 # Docker
 *.log
 
+# Go build/module cache (created when building via dockerized Go)
+.gocache/
+
+# Compiled binaries
+/sonic-siphon
+/cmd/server/server
+
+# Local env (secrets — use .env.example as the template)
+.env
+.env.local
+

@@ -7,13 +7,49 @@ on:
       - master
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 env:
   IMAGE_NAME: sonic-siphon
 
 jobs:
+  # Run the full test suite (unit + integration) inside the Dockerfile's
+  # `test` stage. Must pass before any image is pushed to Docker Hub.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: "Build test image (Dockerfile target: test)"
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: test
+          push: false
+          load: true
+          tags: sonic-siphon-test:ci
+          cache-from: type=gha,scope=test
+          cache-to: type=gha,mode=max,scope=test
+
+      - name: Run end-to-end tests
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/app" \
+            sonic-siphon-test:ci ./scripts/test.sh
+
   build-and-push:
+    needs: test
+    # Don't publish on pull_request events — only on push to main/master/tags
+    # or manual workflow_dispatch. PRs still get the test job above.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -42,6 +78,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          target: runtime
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -56,14 +93,13 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"username\":\"${{ secrets.DOCKERHUB_USERNAME }}\",\"password\":\"${{ secrets.DOCKERHUB_TOKEN }}\"}" \
             https://hub.docker.com/v2/users/login/ | jq -r .token)
-          
+
           # Read README and properly encode as JSON
           README_CONTENT=$(jq -Rs . README.md)
-          
+
           # Update Docker Hub repository description
           curl -X PATCH \
             -H "Authorization: JWT $TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"full_description\":$README_CONTENT}" \
             https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/
-

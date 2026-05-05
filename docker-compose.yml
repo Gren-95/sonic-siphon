@@ -1,11 +1,38 @@
 services:
   sonic-siphon:
-    build: .
+    build:
+      context: .
+      target: runtime
     container_name: sonic-siphon
     ports:
       - "5000:5000"
     volumes:
       - ./output:/output
      # - ./temp:/temp
+    env_file:
+      - path: .env
+        required: false
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Test runner. Long-lived container (sleep infinity) so the Makefile can
+  # `docker exec` into it for fast repeat runs. Excluded from default
+  # `docker compose up` via the "test" profile.
+  #
+  #   docker compose --profile test up -d test                 # start once
+  #   docker exec sonic-siphon-test go test ./...              # run as many times as you like
+  test:
+    profiles: ["test"]
+    build:
+      context: .
+      target: test
+    container_name: sonic-siphon-test
+    volumes:
+      - .:/app
+    command: ["sleep", "infinity"]
 

@@ -220,6 +220,20 @@
                     </div>
                 </div>
                 
+                <a href="/api/v1/docs" target="_blank" rel="noopener" title="API documentation" aria-label="API documentation" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </a>
+
+                <form id="logoutForm" method="POST" action="/logout" class="hidden">
+                    <button type="submit" title="Sign out" aria-label="Sign out" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </form>
+
                 <button id="themeToggle" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
                     <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -439,6 +453,24 @@
     </nav>
 
     <script>
+        // Auth: if any fetch comes back 401, send the user to the login page.
+        // Wrap window.fetch once so every existing call gets the behaviour for free.
+        (function () {
+            const origFetch = window.fetch.bind(window);
+            window.fetch = async function (...args) {
+                const res = await origFetch(...args);
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                }
+                return res;
+            };
+        })();
+
+        // Reveal the logout button only when a session cookie is present.
+        if (document.cookie.split('; ').some(c => c.startsWith('sonic_session='))) {
+            document.getElementById('logoutForm').classList.remove('hidden');
+        }
+
         // Initialize
         const form = document.getElementById('downloadForm');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -578,7 +610,7 @@
             if (!url) return;
             
             try {
-                const response = await fetch('/download', {
+                const response = await fetch('/api/v1/downloads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url, speed: selectedSpeed })
@@ -704,7 +736,7 @@
                 previewContent.innerHTML = '<div class="text-xs text-stone-500 dark:text-stone-400 text-center py-2 flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Loading...</div>';
                 downloadBtn.disabled = true;
                 
-                const response = await fetch('/preview', {
+                const response = await fetch('/api/v1/preview', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url })
@@ -766,7 +798,7 @@
         // Load files
         async function loadFiles() {
             try {
-                const response = await fetch('/files');
+                const response = await fetch('/api/v1/files');
                 const data = await response.json();
 
                 renderTempFiles(data.temp_files || []);
@@ -801,7 +833,7 @@
                             class="file-checkbox w-5 h-5 rounded border-stone-300 dark:border-stone-600 text-emerald-600 focus:ring-emerald-500"
                             data-filename="${escapeHtml(file.name)}"
                         >
-                        ${file.has_thumbnail ? `<img src="/thumbnail/temp/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'temp')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'temp')">` : 
+                        ${file.has_thumbnail ? `<img src="/api/v1/files/temp/thumbnail/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'temp')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'temp')">` : 
                         `<div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'temp')">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
@@ -869,7 +901,7 @@
             outputFileList.innerHTML = pageFiles.map(file => `
                 <div class="file-card p-4" data-filename="${escapeHtml(file.name)}" data-location="output">
                     <div class="flex items-center gap-3">
-                        ${file.has_thumbnail ? `<img src="/thumbnail/output/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'output')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'output')">` : 
+                        ${file.has_thumbnail ? `<img src="/api/v1/files/output/thumbnail/${encodeURIComponent(file.name)}" alt="" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'output')" onerror="handleThumbnailError(event, '${escapeJs(file.name)}', 'output')">` : 
                         `<div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center flex-shrink-0 cursor-pointer" onclick="playFile('${escapeJs(file.name)}', 'output')">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
@@ -924,13 +956,13 @@
         
         // File actions
         function playFile(filename, location) {
-            const url = `/stream/${location}/${encodeURIComponent(filename)}`;
+            const url = `/api/v1/files/${location}/stream/${encodeURIComponent(filename)}`;
             audioElement.src = url;
             audioElement.play();
             audioPlayerTitle.textContent = filename;
-            
+
             // Load thumbnail
-            fetch(`/thumbnail/${location}/${encodeURIComponent(filename)}`)
+            fetch(`/api/v1/files/${location}/thumbnail/${encodeURIComponent(filename)}`)
                 .then(res => res.ok ? res.blob() : null)
                 .then(blob => {
                     if (blob) {
@@ -954,7 +986,7 @@
         }
         
         function streamFile(filename, location) {
-            const url = `/stream/${location}/${encodeURIComponent(filename)}`;
+            const url = `/api/v1/files/${location}/stream/${encodeURIComponent(filename)}`;
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
@@ -965,7 +997,7 @@
             if (!confirm(`Delete ${filename}?`)) return;
             
             try {
-                const response = await fetch(`/delete/${location}/${encodeURIComponent(filename)}`, {
+                const response = await fetch(`/api/v1/files/${location}/${encodeURIComponent(filename)}`, {
                     method: 'DELETE'
                 });
 
@@ -996,7 +1028,7 @@
             if (selectedFiles.size === 0) return;
             
             try {
-                const response = await fetch('/move', {
+                const response = await fetch('/api/v1/files/move', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ filenames: Array.from(selectedFiles) })
@@ -1035,7 +1067,7 @@
         // Jobs
         async function loadJobs() {
             try {
-                const response = await fetch('/jobs');
+                const response = await fetch('/api/v1/downloads');
                 const data = await response.json();
                 
                 // Extract jobs array from response (backend returns {jobs: [...]})
@@ -1135,7 +1167,7 @@
         
         async function cancelJob(jobId) {
             try {
-                const response = await fetch(`/jobs/${jobId}`, {
+                const response = await fetch(`/api/v1/downloads/${jobId}`, {
                     method: 'DELETE'
                 });
 
