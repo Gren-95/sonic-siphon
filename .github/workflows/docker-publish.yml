@@ -40,8 +40,12 @@ jobs:
           cache-to: type=gha,mode=max,scope=test
 
       - name: Run end-to-end tests
+        # Pass CI=true through into the container so requireYouTubeAccess(t)
+        # in the test suite can skip downloads — datacenter IPs get YouTube's
+        # bot challenge, which `yt-dlp` can't bypass without account cookies.
         run: |
           docker run --rm \
+            -e CI=true \
             -v "${{ github.workspace }}:/app" \
             sonic-siphon-test:ci ./scripts/test.sh
 
