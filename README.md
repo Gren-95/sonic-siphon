@@ -1,5 +1,11 @@
 # Sonic Siphon
 
+[![Build](https://github.com/Gren-95/sonic-siphon/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/Gren-95/sonic-siphon/actions/workflows/docker-publish.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fossfrog/sonic-siphon)](https://hub.docker.com/r/fossfrog/sonic-siphon)
+[![Image Size](https://img.shields.io/docker/image-size/fossfrog/sonic-siphon/latest)](https://hub.docker.com/r/fossfrog/sonic-siphon/tags)
+[![Image Version](https://img.shields.io/docker/v/fossfrog/sonic-siphon?sort=semver)](https://hub.docker.com/r/fossfrog/sonic-siphon/tags)
+[![License](https://img.shields.io/github/license/Gren-95/sonic-siphon)](LICENSE)
+
 YouTube to MP3 with playback-speed control. Self-hosted, Docker-first, with a
 machine-readable HTTP API designed to be driven by either the bundled web UI
 or an automation/AI agent.
