@@ -36,6 +36,7 @@ const (
 
 func TestIntegration_PreviewSingleVideo(t *testing.T) {
 	requireBinaries(t, "yt-dlp")
+	requireYouTubeAccess(t)
 
 	info, err := GetVideoInfo(testVideoURL, false)
 	if err != nil {
@@ -60,6 +61,7 @@ func TestIntegration_PreviewSingleVideo(t *testing.T) {
 
 func TestIntegration_DownloadByVideoID(t *testing.T) {
 	requireBinaries(t, "yt-dlp", "ffmpeg", "ffprobe")
+	requireYouTubeAccess(t)
 
 	tempDir := t.TempDir()
 	store := NewJobStore()
@@ -95,6 +97,7 @@ func TestIntegration_DownloadByVideoID(t *testing.T) {
 
 func TestIntegration_AdjustAudioSpeed_Halves(t *testing.T) {
 	requireBinaries(t, "yt-dlp", "ffmpeg", "ffprobe")
+	requireYouTubeAccess(t)
 
 	tempDir := t.TempDir()
 	store := NewJobStore()
@@ -132,6 +135,7 @@ func TestIntegration_AdjustAudioSpeed_Halves(t *testing.T) {
 
 func TestIntegration_FullHTTPFlow(t *testing.T) {
 	requireBinaries(t, "yt-dlp", "ffmpeg")
+	requireYouTubeAccess(t)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -261,6 +265,7 @@ func TestIntegration_HealthEndpoint(t *testing.T) {
 
 func TestIntegration_CancelMidDownload(t *testing.T) {
 	requireBinaries(t, "yt-dlp")
+	requireYouTubeAccess(t)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -328,6 +333,7 @@ func TestIntegration_CancelMidDownload(t *testing.T) {
 
 func TestIntegration_PlaylistPreviewFull(t *testing.T) {
 	requireBinaries(t, "yt-dlp")
+	requireYouTubeAccess(t)
 
 	// YouTube auto-generates a "Mix" playlist (RD<videoID>) for any video.
 	// Mixes are dynamic but always contain >0 entries; we test invariants, not exact counts.
@@ -358,6 +364,7 @@ func TestIntegration_PlaylistPreviewFull(t *testing.T) {
 
 func TestIntegration_PlaylistPreviewDefaultPreviewSize(t *testing.T) {
 	requireBinaries(t, "yt-dlp")
+	requireYouTubeAccess(t)
 
 	playlistURL := "https://www.youtube.com/watch?v=" + testVideoID + "&list=RD" + testVideoID
 
@@ -379,6 +386,7 @@ func TestIntegration_PlaylistPreviewDefaultPreviewSize(t *testing.T) {
 
 func TestIntegration_DownloadByVideoIDsSubset(t *testing.T) {
 	requireBinaries(t, "yt-dlp", "ffmpeg")
+	requireYouTubeAccess(t)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -428,6 +436,7 @@ func TestIntegration_DownloadByVideoIDsSubset(t *testing.T) {
 
 func TestIntegration_StreamAndThumbnailContent(t *testing.T) {
 	requireBinaries(t, "yt-dlp", "ffmpeg")
+	requireYouTubeAccess(t)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -805,6 +814,18 @@ func requireBinaries(t *testing.T, names ...string) {
 		if _, err := exec.LookPath(n); err != nil {
 			t.Skipf("required binary %q not found on PATH: %v", n, err)
 		}
+	}
+}
+
+// requireYouTubeAccess skips the test in CI environments. YouTube's anti-bot
+// system challenges yt-dlp requests from datacenter IPs (GitHub Actions, most
+// cloud runners) with a "Sign in to confirm you're not a bot" interstitial,
+// so any test that actually hits YouTube can't be verified there. Run these
+// tests locally — they pass from residential IPs.
+func requireYouTubeAccess(t *testing.T) {
+	t.Helper()
+	if os.Getenv("CI") != "" {
+		t.Skip("YouTube returns a bot challenge to datacenter IPs (CI=" + os.Getenv("CI") + "); run locally to exercise this path")
 	}
 }
 
