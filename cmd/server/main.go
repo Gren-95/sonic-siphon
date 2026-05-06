@@ -61,7 +61,7 @@ func main() {
 		log.Fatalf("invalid TRUSTED_PROXIES: %v", err)
 	}
 
-	r.Use(api.SecurityHeaders())
+	r.Use(api.SecurityHeaders(os.Getenv("FRAME_ANCESTORS")))
 	r.Use(api.AuthMiddleware(authCfg, store))
 
 	api.New(r, api.Config{TempDir: *tempDir, OutputDir: *outputDir})

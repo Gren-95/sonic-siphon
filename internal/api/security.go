@@ -12,15 +12,29 @@ import (
 // the bundled index.html embeds both; tightening that further would require
 // extracting all inline content into separate files.
 //
+// frameAncestors maps to the CSP frame-ancestors directive (and also drives
+// whether X-Frame-Options: DENY is sent). Pass "" or "'none'" to forbid all
+// iframe embedding; pass "*" to allow any origin; pass an origin like
+// "https://dashboard.local" or "'self' https://dashboard.local" for an
+// allowlist.
+//
 // Cache-Control: no-store is applied to everything except cacheable static
 // assets (CSS, icons, manifest) so that pages and API responses — which can
 // leak file listings, session state, or JSON content — are not stored by
 // browsers, forward proxies, or CDNs.
-func SecurityHeaders() gin.HandlerFunc {
+func SecurityHeaders(frameAncestors string) gin.HandlerFunc {
+	if strings.TrimSpace(frameAncestors) == "" {
+		frameAncestors = "'none'"
+	}
 	return func(c *gin.Context) {
 		h := c.Writer.Header()
 		h.Set("X-Content-Type-Options", "nosniff")
-		h.Set("X-Frame-Options", "DENY")
+		// X-Frame-Options has no allowlist syntax — it's DENY / SAMEORIGIN / nothing.
+		// Only emit it when we want a full block; otherwise rely on CSP frame-ancestors,
+		// which all modern browsers honour.
+		if frameAncestors == "'none'" {
+			h.Set("X-Frame-Options", "DENY")
+		}
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
 		h.Set("Content-Security-Policy",
@@ -29,7 +43,7 @@ func SecurityHeaders() gin.HandlerFunc {
 				"media-src 'self' blob:; "+
 				"style-src 'self' 'unsafe-inline'; "+
 				"script-src 'self' 'unsafe-inline'; "+
-				"frame-ancestors 'none'")
+				"frame-ancestors "+frameAncestors)
 		if !isCacheableStatic(c.Request.URL.Path) {
 			h.Set("Cache-Control", "no-store")
 		}

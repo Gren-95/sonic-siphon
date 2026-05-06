@@ -552,7 +552,7 @@ func TestIntegration_SSRFAllowlistBlocksNonYouTubeURLs(t *testing.T) {
 func TestIntegration_SecurityHeadersPresent(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(SecurityHeaders())
+	r.Use(SecurityHeaders(""))
 	New(r, Config{TempDir: t.TempDir(), OutputDir: t.TempDir()})
 	srv := httptest.NewServer(r)
 	defer srv.Close()
@@ -583,13 +583,51 @@ func TestIntegration_SecurityHeadersPresent(t *testing.T) {
 	}
 }
 
+// TestIntegration_FrameAncestorsConfigurable verifies the FRAME_ANCESTORS
+// env hook: by default we forbid framing entirely (X-Frame-Options: DENY +
+// CSP frame-ancestors 'none'); when an allowlist is configured we drop
+// X-Frame-Options and reflect the value in CSP.
+func TestIntegration_FrameAncestorsConfigurable(t *testing.T) {
+	for _, tc := range []struct {
+		name             string
+		frameAncestors   string
+		wantXFO          string
+		wantCSPSubstring string
+	}{
+		{name: "default blocks framing", frameAncestors: "", wantXFO: "DENY", wantCSPSubstring: "frame-ancestors 'none'"},
+		{name: "wildcard allows any", frameAncestors: "*", wantXFO: "", wantCSPSubstring: "frame-ancestors *"},
+		{name: "specific origin", frameAncestors: "https://dashboard.local", wantXFO: "", wantCSPSubstring: "frame-ancestors https://dashboard.local"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.Use(SecurityHeaders(tc.frameAncestors))
+			r.GET("/probe", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+			srv := httptest.NewServer(r)
+			defer srv.Close()
+
+			resp, err := http.Get(srv.URL + "/probe")
+			if err != nil {
+				t.Fatalf("GET: %v", err)
+			}
+			resp.Body.Close()
+			if got := resp.Header.Get("X-Frame-Options"); got != tc.wantXFO {
+				t.Errorf("X-Frame-Options = %q, want %q", got, tc.wantXFO)
+			}
+			if csp := resp.Header.Get("Content-Security-Policy"); !strings.Contains(csp, tc.wantCSPSubstring) {
+				t.Errorf("CSP missing %q; got %q", tc.wantCSPSubstring, csp)
+			}
+		})
+	}
+}
+
 // TestIntegration_CacheControlNoStore verifies sensitive responses are not
 // cacheable, while genuinely-static assets remain cacheable so the browser
 // doesn't refetch CSS/icons on every navigation.
 func TestIntegration_CacheControlNoStore(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(SecurityHeaders())
+	r.Use(SecurityHeaders(""))
 	New(r, Config{TempDir: t.TempDir(), OutputDir: t.TempDir()})
 	// Stand-in static handler so we can assert it's NOT marked no-store.
 	r.GET("/static/*filepath", func(c *gin.Context) { c.String(http.StatusOK, "asset") })
